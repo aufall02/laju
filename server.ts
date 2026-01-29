@@ -15,7 +15,7 @@ import inertia from "./app/middlewares/inertia";
 // import { securityHeaders } from "./app/middlewares/securityHeaders";
 
 // Application routes definition (all app endpoints)
-import Web from "./routes/web";
+import Routes from "./routes";
 
 // HyperExpress: high-performance HTTP server framework
 import HyperExpress from "hyper-express";
@@ -28,16 +28,16 @@ import { logError, logInfo } from "./app/services/Logger";
 
 // Base server options: request body limit and TLS placeholders
 const option = {
-  max_body_length: 10 * 1024 * 1024, // 10MB request body limit
-  key_file_name : "", // HTTPS private key file path (set when PROTOCOL='https')
-  cert_file_name : "", // HTTPS certificate file path (set when PROTOCOL='https')
+   max_body_length: 10 * 1024 * 1024, // 10MB request body limit
+   key_file_name: "", // HTTPS private key file path (set when PROTOCOL='https')
+   cert_file_name: "", // HTTPS certificate file path (set when PROTOCOL='https')
 };
 
 // Enable HTTPS when PROTOCOL='https' using local dev certificates
 // Enable HTTPS when HAS_CERTIFICATE='true' using local dev certificates
-if(process.env.HAS_CERTIFICATE === 'true') {
-  option.key_file_name = path.join(process.cwd(), 'localhost+1-key.pem'); // private key
-  option.cert_file_name = path.join(process.cwd(), 'localhost+1.pem');     // certificate
+if (process.env.HAS_CERTIFICATE === 'true') {
+   option.key_file_name = path.join(process.cwd(), 'localhost+1-key.pem'); // private key
+   option.cert_file_name = path.join(process.cwd(), 'localhost+1.pem');     // certificate
 }
 
 // Create the HyperExpress server with the above options
@@ -49,20 +49,20 @@ import "app/services/View";
 
 // Global middlewares
 // webserver.use(securityHeaders()); // Add security headers to all responses
- 
+
 
 webserver.use(inertia()); // Enable Inertia middleware for SSR-like responses
 
 // webserver.use(csrf()); // Enable CSRF protection for state-changing requests
 
-// Mount application routes
-webserver.use(Web);
+// Mount application routes (combines web.ts and api.ts)
+webserver.use(Routes);
 
 // Resolve server port from environment or default to 5555
 const PORT = parseInt(process.env.PORT || '') || 5555;
 
 // Global error handler (runs for unhandled errors in requests)
-webserver.set_error_handler((request : Request, response : Response, error: any) => {
+webserver.set_error_handler((request: Request, response: Response, error: any) => {
    // Log error properly with Winston
    logError('Unhandled request error', error, {
       method: request.method,
