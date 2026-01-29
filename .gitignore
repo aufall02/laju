@@ -17,3 +17,4 @@ logs/
 *.log
 build
 dist
+.idea
