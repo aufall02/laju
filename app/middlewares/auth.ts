@@ -1,4 +1,4 @@
-import SQLite from "../services/SQLite"; 
+import SQLite from "../services/SQLite";
 import { Request, Response } from "../../type";
 import type { User } from "../../type";
 
@@ -23,10 +23,10 @@ export default async (request: Request, response: Response) => {
       }
 
       user.is_admin = Boolean(user.is_admin);
-      
+
       user.is_verified = Boolean(user.is_verified);
 
-      request.user = user; 
+      request.user = user;
 
    } catch (error) {
       console.error("Auth middleware error:", error);

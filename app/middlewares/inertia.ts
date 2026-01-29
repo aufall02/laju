@@ -15,14 +15,18 @@ const inertia = () => {
       };
 
 
-      response.redirect = ((url: string, status: number = 302) => { 
-         return response.status(status).setHeader("Location", url).send();
+      response.redirect = ((url: string, status?: number) => {
+         // Inertia requires 303 redirect for PUT/PATCH/DELETE to force GET
+         const method = request.method.toUpperCase();
+         const defaultStatus = ['PUT', 'PATCH', 'DELETE'].includes(method) ? 303 : 302;
+         const finalStatus = status ?? defaultStatus;
+         return response.status(finalStatus).setHeader("Location", url).send();
       }) as { (url: string): boolean; (url: string, status?: number): Response };
 
       // Set up the inertia method on response
-      response.inertia = async (component : string, inertiaProps = {}, viewProps = {}) => {
+      response.inertia = async (component: string, inertiaProps = {}, viewProps = {}) => {
 
-          const url = request.originalUrl;
+         const url = request.originalUrl;
 
          // Merge shared props with inertia props
          let props: Record<string, unknown> = {
@@ -57,7 +61,7 @@ const inertia = () => {
          if (!request.header("X-Inertia")) {
             const html = view("inertia.html", {
                page: JSON.stringify(inertiaObject),
-               title : "Laju - LAJU - Hyper Performance TypeScript Monolith", 
+               title: "Laju - LAJU - Hyper Performance TypeScript Monolith",
                ...viewProps
             });
 
