@@ -1,10 +1,12 @@
 /**
  * Database Service using Knex.js
+ * 
  * This service provides a configured database connection instance using Knex.js query builder.
- * It supports multiple database connections based on different stages (development, production, etc.).
+ * It supports multiple database connections based on different stages (development, production, etc.)
+ * and multiple database types (SQLite, PostgreSQL, MySQL).
  */
 
-import config from "../../knexfile";
+import config, { isSQLite } from "../../knexfile";
 import "dotenv/config";
 import DBInstance from "knex";
 import { Knex } from "knex";
@@ -17,12 +19,12 @@ import { Knex } from "knex";
  * @extends {Knex}
  */
 interface DBType extends Knex {
-   /**
-    * Creates a new database connection for a specific stage
-    * @param {string} stage - The environment stage (e.g., 'development', 'production')
-    * @returns {DBType} A new database instance for the specified stage
-    */
-   connection: (stage: string) => DBType;
+  /**
+   * Creates a new database connection for a specific stage
+   * @param {string} stage - The environment stage (e.g., 'development', 'production')
+   * @returns {DBType} A new database instance for the specified stage
+   */
+  connection: (stage: string) => DBType;
 }
 
 /**
@@ -41,26 +43,36 @@ let DB = DBInstance(config[process.env.DB_CONNECTION as string]) as DBType;
 
 /**
  * Apply SQLite PRAGMAs for better performance and correctness when using better-sqlite3
- * Runs once per knex instance.
+ * These PRAGMAs are only applied for SQLite databases.
+ * 
+ * @param instance - The Knex instance to apply PRAGMAs to
  */
-function applySQLitePragmas(instance: Knex) {
-  const client = (config[process.env.DB_CONNECTION as string] || {}).client;
-  if (client === 'better-sqlite3') {
+function applyDatabaseOptimizations(instance: Knex) {
+  const connectionConfig = config[process.env.DB_CONNECTION as string];
+
+  // Only apply SQLite PRAGMAs for SQLite databases
+  if (connectionConfig?.client === 'better-sqlite3' || connectionConfig?.client === 'sqlite3') {
     try {
-      // These PRAGMAs are safe for most applications; adjust if needed
+      // WAL mode for better concurrent access
       instance.raw('PRAGMA journal_mode = WAL');
+      // NORMAL sync for balance between safety and speed
       instance.raw('PRAGMA synchronous = NORMAL');
+      // Enable foreign key constraints
       instance.raw('PRAGMA foreign_keys = ON');
-      instance.raw('PRAGMA busy_timeout = 5000'); // Wait 5s before throwing SQLITE_BUSY error
+      // Wait 5s before throwing SQLITE_BUSY error
+      instance.raw('PRAGMA busy_timeout = 5000');
     } catch (err) {
       // Non-fatal: continue even if PRAGMA fails
       console.warn('Failed to apply SQLite PRAGMA:', err);
     }
   }
+
+  // PostgreSQL optimizations can be added here if needed
+  // MySQL optimizations can be added here if needed
 }
 
-// Apply PRAGMA on the default instance
-applySQLitePragmas(DB);
+// Apply optimizations on the default instance
+applyDatabaseOptimizations(DB);
 
 /**
  * Method to create a new database connection for a specific stage
@@ -70,9 +82,15 @@ applySQLitePragmas(DB);
  * @returns {DBType} A new database instance configured for the specified stage
  */
 DB.connection = (stage: string) => {
-   const instance = DBInstance(config[stage]) as DBType;
-   applySQLitePragmas(instance);
-   return instance;
+  const instance = DBInstance(config[stage]) as DBType;
+  applyDatabaseOptimizations(instance);
+  return instance;
 };
 
 export default DB;
+
+/**
+ * Check if the current database is SQLite
+ * Useful for conditional logic that's SQLite-specific
+ */
+export { isSQLite };

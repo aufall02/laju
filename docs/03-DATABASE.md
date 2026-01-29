@@ -15,14 +15,17 @@ Complete guide for database operations in Laju framework.
 
 ## Overview
 
-Laju provides two database services:
+Laju supports multiple databases through Knex.js:
 
-| Service | Use Case | Performance |
-|---------|----------|-------------|
-| **DB (Knex.js)** | Complex queries, migrations | Standard |
-| **SQLite (Native)** | Simple reads, performance-critical | 2-4x faster |
+| Database | Client | Use Case | Performance |
+|----------|--------|----------|-------------|
+| **SQLite** | `better-sqlite3` | Development, embedded apps | Native service 2-4x faster |
+| **PostgreSQL** | `pg` | Production, scalable apps | Standard |
+| **MySQL** | `mysql2` | Production, web apps | Standard |
 
-Both use **BetterSQLite3** with WAL mode enabled by default.
+Both use **Knex.js** for query building with optional **native SQLite** for maximum performance.
+
+> **New to multi-database?** See [Multi-Database Configuration Guide](03b-MULTI-DATABASE.md) for setup instructions.
 
 ---
 
