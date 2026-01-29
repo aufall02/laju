@@ -93,7 +93,6 @@ Documentation is organized for progressive learning from beginner to advanced.
 - [Testing](docs/19-TESTING.md) - Unit + Integration tests
 - [Deployment](docs/20-DEPLOYMENT.md) - Production setup
 - [GitHub Actions](docs/21-GITHUB-ACTIONS.md) - CI/CD workflows
-- [AI Development](docs/23-AI-DEVELOPMENT.md) - AI integration
 
 ### Reference
 - [API Reference](docs/24-API-REFERENCE.md) - Framework API
